@@ -1,1 +1,1 @@
-import './fifth.ts';
+import './fifth';
