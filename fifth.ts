@@ -1,4 +1,5 @@
 import { input } from './input';
+
 const input1 = `seeds: 79 14 55 13
 
 seed-to-soil map:
@@ -38,6 +39,7 @@ interface Mapping {
   source: number;
   range: number;
 }
+
 interface Data {
   seeds: number[];
   mappings: {
@@ -75,29 +77,44 @@ function parseData(str: string): Data {
   };
 }
 
-function buildMap(mappings: Mapping[]): { [key: string]: number } {
-  const mapO = {};
-  mappings.forEach(({ destination, source, range }, i) => {
-    for (let j = 0; j < range; j++) {
-      mapO[source + j] = destination + j;
+function buildMap(mappings: Mapping[]): Mapping[] {
+
+  mappings = mappings.sort((m1, m2) => {
+    return m1.source > m2.source ? 1 : -1;
+  });
+
+  return mappings;
+}
+
+function getCoordinate(from: number, mapping: Mapping[]): number {
+  let isHit = false;
+  mapping.forEach(({ destination, source, range }) => {
+    if (isHit) {
+      return;
+    }
+    if (from >= source && from <= source + range) {
+      isHit = true;
+      from = destination + from - source;
     }
   });
-  return mapO;
+
+  return from;
+
 }
 
 function mapAll(str: string): any {
-  const data = parseData(str)
+  const data = parseData(str);
+
   const maps = data.mappings.map(({ mapping }) => buildMap(mapping));
 
   const final = data.seeds.map((seed) => {
     let coordinate = seed;
     for (let j = 0; j < maps.length; j++) {
-      const c = maps[j][coordinate];
+      const c = getCoordinate(coordinate, maps[j]);
       coordinate = c === undefined ? coordinate : c;
     }
     return coordinate;
   });
-  console.log(final);
 
   const min = Math.min(...final);
   console.log(min);

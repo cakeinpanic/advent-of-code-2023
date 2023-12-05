@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "ts-node index.ts"
+    "test": " node --max-old-space-size=16000 --loader ts-node/esm index.ts"
   },
   "dependencies": {
     "ts-node": "^10.9.1"
