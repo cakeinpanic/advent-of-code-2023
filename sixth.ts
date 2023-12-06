@@ -8,6 +8,10 @@ function parseInput(str: string) {
   return str.replace(/\w+:/g, '').replace(/ +/g, ' ').split('\n').map((x) => x.trim().split(' ').map((y) => parseInt(y, 10)));
 
 }
+function parseInputPlus(str: string) {
+  return str.replace(/\w+:/g, '').replace(/ +/g, '').split('\n').map((x) => x.trim().split(' ').map((y) => parseInt(y, 10)));
+
+}
 
 function processRace(time: number, distance: number): number[] {
   let result = [];
@@ -23,6 +27,16 @@ function processRace(time: number, distance: number): number[] {
   return result;
 }
 
+function solvePlus(inp: string) {
+  const data = parseInputPlus(inp);
+  console.log(data);
+  const res = data[0].map((time, i) => {
+    const variants = processRace(time, data[1][i])
+    return variants.length
+  }).reduce((a,b)=>a*b, 1)
+  console.log(res);
+}
+
 function solve(inp: string) {
   const data = parseInput(inp);
   const res = data[0].map((time, i) => {
@@ -32,4 +46,5 @@ function solve(inp: string) {
   console.log(res);
 }
 
-solve(input);
+//solve(input);
+solvePlus(input1)
