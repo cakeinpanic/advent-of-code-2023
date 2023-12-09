@@ -34,7 +34,7 @@ function getRank(rawHand: string): number {
   const hand = parseHand(rawHand);
   const combo = findCombo(hand);
 
-  return combo + getSum(rawHand);
+  return combo;// + getSum(rawHand);
 }
 
 function getRankPlus(rawHand: string): number {
@@ -42,9 +42,20 @@ function getRankPlus(rawHand: string): number {
     return getRank(rawHand);
   }
 
-  const hand = parseHand(rawHand);
-  const combo = findCombo(hand);
-  return combo + getSum(rawHand, CARDS_RANK_JOKER);
+  const allCombos = CARDS_RANK_JOKER.slice(1).map((card) => {
+    const newCard = rawHand.replace(/J/g, card);
+    return newCard;
+  }).sort((a, b) => {
+    const handA = parseHand(a);
+    const handB = parseHand(b);
+    return findCombo(handB) - findCombo(handA);
+  });
+  console.log(rawHand, '->', allCombos[0]);
+
+  const hand = parseHand(allCombos[0]);
+  const maxCombo = findCombo(hand);
+
+  return maxCombo;
 }
 
 function findCombo(hand: Hand): number {
@@ -86,7 +97,7 @@ function parseHand(hand: string): Hand {
   return result;
 }
 
-function solve(inp: string, getRankMethod: Function): void {
+function solve(inp: string, getRankMethod: Function, RANK = CARDS_RANK): void {
   const hands = inp.split('\n').map((line) => {
     const [hand, value] = line.split(' ');
 
@@ -96,17 +107,30 @@ function solve(inp: string, getRankMethod: Function): void {
       value: +value
     };
   }).sort((a, b) => {
-    return a.rank - b.rank > 0 ? 1 : -1;
-  });
-  //.map(({ value, rawHand }) => ({ rawHand, value }));
+    if (a.rank === b.rank) {
+      for (let i = 0; i < 5; i++) {
+        const indA = RANK.indexOf(a.rawHand[i]);
+        const indB = RANK.indexOf(b.rawHand[i]);
+        if (indA === indB) {
+          continue
+        }
+        if (indA > indB) {
+          return 1;
+        }
+        return -1;
+      }
+    }
+    return a.rank > b.rank ? 1 : -1;
+  })
+    .map(({ value, rawHand }) => ({ rawHand, value }));
 
   const val = hands.reduce((acc, curr, i) => {
     return acc + curr.value * (i + 1);
   }, 0);
 
-  console.log(val);
+  console.log(hands, val);
 
 }
 
 //solve(input, getRank);
-solve(input1, getRankPlus);
+solve(input, getRankPlus, CARDS_RANK_JOKER);
