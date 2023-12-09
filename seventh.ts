@@ -7,6 +7,8 @@ import { input } from './input';
 
 const CARDS_RANK = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'].reverse();
 
+const CARDS_RANK_JOKER = ['A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3', '2', 'J'].reverse();
+
 type CARD = 'A' | 'K' | 'Q' | 'J' | 'T' | '9' | '8' | '7' | '6' | '5' | '4' | '3' | '2'
 
 enum COMBO {
@@ -21,36 +23,55 @@ enum COMBO {
 
 type Hand = { cards?: { [key in CARD]?: number }, sum?: number }
 
-function getRank(hand: Hand): number {
+function getSum(rawHand: string, RANKS = CARDS_RANK): number {
+  return rawHand.split('').reverse().map((card, i) => {
+    const index = RANKS.indexOf(card) + 1;
+    return index * Math.pow(100, i);
+  }).reduce((acc, curr) => acc + curr, 0);
+}
+
+function getRank(rawHand: string): number {
+  const hand = parseHand(rawHand);
   const combo = findCombo(hand);
-  const MAX = Math.pow(100, 7);
-  return combo * MAX + hand.sum;
+
+  return combo + getSum(rawHand);
+}
+
+function getRankPlus(rawHand: string): number {
+  if (!rawHand.includes('J')) {
+    return getRank(rawHand);
+  }
+
+  const hand = parseHand(rawHand);
+  const combo = findCombo(hand);
+  return combo + getSum(rawHand, CARDS_RANK_JOKER);
 }
 
 function findCombo(hand: Hand): number {
   const values: number[] = Object.values(hand.cards);
   const max = Math.max(...values);
   const min = Math.min(...values);
+  const MAX = Math.pow(100, 7);
 
   if (max === 5) {
-    return COMBO.FIVE;
+    return COMBO.FIVE * MAX;
   }
   if (max === 4) {
-    return COMBO.FOUR;
+    return COMBO.FOUR * MAX;
   }
   if (max === 3) {
     if (min === 2) {
-      return COMBO.FULLHOUSE;
+      return COMBO.FULLHOUSE * MAX;
     }
-    return COMBO.THREE;
+    return COMBO.THREE * MAX;
   }
   if (max === 2) {
     if (values.filter((v) => v === 2).length === 2) {
-      return COMBO.TWOPAIRS;
+      return COMBO.TWOPAIRS * MAX;
     }
-    return COMBO.PAIR;
+    return COMBO.PAIR * MAX;
   }
-  return COMBO.HIGH;
+  return COMBO.HIGH * MAX;
 }
 
 function parseHand(hand: string): Hand {
@@ -61,11 +82,7 @@ function parseHand(hand: string): Hand {
     const rank = card[0] as CARD;
     result.cards[rank] = (result.cards[rank] || 0) + 1;
   });
-  result.sum = cards.reverse().map((card, i) => {
-    const index = CARDS_RANK.indexOf(card) + 1;
-    const r = index * Math.pow(100, i);
-    return r;
-  }).reduce((acc, curr) => acc + curr, 0);
+
   return result;
 }
 
@@ -73,17 +90,15 @@ function solve(inp: string, getRankMethod: Function): void {
   const hands = inp.split('\n').map((line) => {
     const [hand, value] = line.split(' ');
 
-    const parsedHand = parseHand(hand);
     return {
-      rank: getRankMethod(parsedHand),
-      hand: parsedHand,
+      rank: getRankMethod(hand),
       rawHand: hand,
       value: +value
     };
   }).sort((a, b) => {
     return a.rank - b.rank > 0 ? 1 : -1;
-  })
-    //.map(({ value, rawHand }) => ({ rawHand, value }));
+  });
+  //.map(({ value, rawHand }) => ({ rawHand, value }));
 
   const val = hands.reduce((acc, curr, i) => {
     return acc + curr.value * (i + 1);
@@ -93,4 +108,5 @@ function solve(inp: string, getRankMethod: Function): void {
 
 }
 
-solve(input, getRank);
+//solve(input, getRank);
+solve(input1, getRankPlus);
