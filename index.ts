@@ -1,2 +1,2 @@
-import './sixth';
+import './seventh';
 
